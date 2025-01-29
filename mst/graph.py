@@ -27,18 +27,38 @@ class Graph:
 
     def construct_mst(self):
         """
-    
-        TODO: Given `self.adj_mat`, the adjacency matrix of a connected undirected graph, implement Prim's 
-        algorithm to construct an adjacency matrix encoding the minimum spanning tree of `self.adj_mat`. 
-            
-        `self.adj_mat` is a 2D numpy array of floats. Note that because we assume our input graph is
-        undirected, `self.adj_mat` is symmetric. Row i and column j represents the edge weight between
-        vertex i and vertex j. An edge weight of zero indicates that no edge exists. 
-        
-        This function does not return anything. Instead, store the adjacency matrix representation
-        of the minimum spanning tree of `self.adj_mat` in `self.mst`. We highly encourage the
-        use of priority queues in your implementation. Refer to the heapq module, particularly the 
-        `heapify`, `heappop`, and `heappush` functions.
-
+        Generate an MST using Prim's Algorithm, starting at node 0.
         """
-        self.mst = None
+
+        # Handle trivial cases of one or zero nodes.
+        if self.adj_mat.size == 0:
+            self.mst = self.adj_mat.copy()
+            return
+        if self.adj_mat.size == 1:
+            self.mst = np.zeros((1,1))
+            return
+
+        self.mst = np.zeros((len(self.adj_mat),len(self.adj_mat)))
+        # Use dummy node to start the while loop.
+        heap = [[0, None, 0]] # Weight, v1, v2
+        seen = set()
+        while heap:
+            weight, v1, v2 = heapq.heappop(heap)
+            if v1 in seen and v2 in seen:
+                # extra edge, disregard.
+                continue
+            if v2 in seen:
+                # variable swap to prevent duplicate code.
+                temp = v2
+                v2 = v1
+                v1 = temp
+            seen.add(v2)
+            self.mst[v1][v2] = weight
+            self.mst[v2][v1] = weight
+            # Add the newly unioned node's edges to the heap if they go to
+            # nodes not already visited.
+            for edge_i in range(len(self.adj_mat[v2])):
+                if edge_i in seen or self.adj_mat[v2][edge_i] == 0:
+                    continue
+                weight = self.adj_mat[edge_i][v2]
+                heapq.heappush(heap, [weight, edge_i, v2])
